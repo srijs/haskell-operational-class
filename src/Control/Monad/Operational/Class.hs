@@ -5,7 +5,7 @@ module Control.Monad.Operational.Class where
 import Data.Monoid (Monoid)
 
 import Control.Monad (liftM, join)
-import Control.Monad.Operational
+import qualified Control.Monad.Operational as Operational
 import Control.Monad.Trans.Class (MonadTrans, lift)
 
 import Control.Monad.Trans.Reader (ReaderT)
@@ -21,18 +21,21 @@ import Control.Monad.Trans.Identity (IdentityT)
 import Control.Monad.Trans.List (ListT)
 
 class Monad m => MonadProgram instr m | m -> instr where
-  wrap :: Program instr (m a) -> m a
+  wrap :: Operational.Program instr (m a) -> m a
 
-wrapT :: (m ~ t n, Monad m, MonadTrans t, MonadProgram instr n) => Program instr (m a) -> m a
+wrapT :: (m ~ t n, Monad m, MonadTrans t, MonadProgram instr n) => Operational.Program instr (m a) -> m a
 wrapT = join . lift . wrap . fmap return
 
-liftP :: MonadProgram instr m => Program instr a -> m a
-liftP p = wrap $ liftM return p
+liftProgram :: MonadProgram instr m => Operational.Program instr a -> m a
+liftProgram p = wrap $ liftM return p
 
-instance Monad m => MonadProgram instr (ProgramT instr m) where
-  wrap = eval . view
-    where eval (Return a) = a
-          eval (i :>>= k) = singleton i >>= wrap . k
+singleton :: MonadProgram instr m => instr a -> m a
+singleton = liftProgram . Operational.singleton
+
+instance Monad m => MonadProgram instr (Operational.ProgramT instr m) where
+  wrap = eval . Operational.view
+    where eval (Operational.Return a) = a
+          eval (i Operational.:>>= k) = singleton i >>= wrap . k
 
 instance (MonadProgram instr m) => MonadProgram instr (ReaderT e m) where
   wrap = wrapT
