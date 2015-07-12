@@ -35,7 +35,7 @@ singleton = liftProgram . Operational.singleton
 instance Monad m => MonadProgram instr (Operational.ProgramT instr m) where
   wrap = eval . Operational.view
     where eval (Operational.Return a) = a
-          eval (i Operational.:>>= k) = singleton i >>= wrap . k
+          eval (i Operational.:>>= k) = Operational.singleton i >>= wrap . k
 
 instance (MonadProgram instr m) => MonadProgram instr (ReaderT e m) where
   wrap = wrapT
