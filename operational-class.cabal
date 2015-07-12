@@ -20,7 +20,7 @@ library
   exposed-modules:     Control.Monad.Operational.Class
   -- other-modules:
   -- other-extensions:
-  build-depends:       base >=4.6,
+  build-depends:       base >=4.6 && <5,
                        transformers >=0.3,
                        operational >=0.2
   hs-source-dirs:      src
